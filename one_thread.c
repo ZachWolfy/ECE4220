@@ -123,10 +123,11 @@ int main(int argc, char *argv[])
     	(*convo).col = col;
     	pthread_t thread;
 
+	clock_t begin = clock();
     	//create thread
     	pthread_create(&thread, NULL, Convolution, (void *)convo);
 
-	clock_t begin = clock();
+	
     	pthread_join(thread, NULL);
     	clock_t end = clock();
     	

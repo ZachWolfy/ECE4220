@@ -12,15 +12,14 @@ struct Convo{
 	int **arr_before;
 	int **arr_after;
 	int *mask;
-	int col;
-	int num_convo;
-	struct Location *locate;
+	int *col;
+	int *num_convo;
+	int i;
 };
 void *Convolution(void *item)
 {
     	struct Convo *struct_item = (struct Convo*)item;
     	int i = (*struct_item).locate->i;
-    	
 	for(int j = 0; j < (*struct_item).col; j++)
 	{
 		if(j != 0)
@@ -69,11 +68,13 @@ int main(int argc, char*argv[])
     	p = argv[1];
     	printf("Opening %s...\n", p);//print we are opening file number given
 	
-	struct Convo *convo = malloc(sizeof(struct Convo));
-    	int row, col, mask_row, mask_col;
-//----------------------------------------------------------------------------------------------------------------------------------
 	FILE *openfile = fopen(p, "r");
-
+//----------------------------------------------------------------------------------------------------------------------------------
+	
+	int **arr_before;
+	int **arr_after;
+	int *mask;
+    	int row, col, mask_row, mask_col;
 
 	if(openfile == NULL)
 	{
@@ -89,12 +90,12 @@ int main(int argc, char*argv[])
 		fscanf(openfile, "%d", &col);
 
 		//initialize array for both original matrix and container to store convolutioned matrix
-		(*convo).arr_before = malloc(sizeof(int*)*row);
-		(*convo).arr_after = malloc(sizeof(int*)*row);
+		arr_before = malloc(sizeof(int*)*row);
+		arr_after = malloc(sizeof(int*)*row);
 		for(i = 0; i < row; i++)
 		{
-			(*convo).arr_before[i] = malloc(sizeof(int)*col);
-			(*convo).arr_after[i] = malloc(sizeof(int)*col);
+			arr_before[i] = malloc(sizeof(int)*col);
+			arr_after[i] = malloc(sizeof(int)*col);
 		}
 
 		//read matrix in file
@@ -102,14 +103,14 @@ int main(int argc, char*argv[])
 		{
 			for(j = 0; j < col; j++)
 			{
-				fscanf(openfile, "%d", &(*convo).arr_before[i][j]);
+				fscanf(openfile, "%d", &arr_before[i][j]);
 			}
 		}
 
 		fscanf(openfile, "%d", &mask_row);
 		fscanf(openfile, "%d", &mask_col);
 
-		(*convo).mask = malloc(sizeof(int)*mask_col);
+		mask = malloc(sizeof(int)*mask_col);
 
 		//get masking values
 		fscanf(openfile, "%d", &(*convo).mask[0]);
@@ -121,24 +122,26 @@ int main(int argc, char*argv[])
 	}
 //----------------------------------------------------------------------------------------------------------------------------------
     	//declaration
-    	(*convo).col = col;
+	struct Convo *convo = malloc(sizeof(struct Convo)*row);
+    	int num_convo;
     	pthread_t thread[row];
-	int create_count = 0;
 //----------------------------------------------------------------------------------------------------------------------------------
 
     	//create threads
 	for(int i = 0; i < row; i++)
 	{
-		(*convo).locate = malloc(sizeof(struct Location));
-		(*convo).locate->i = i;
-		pthread_create(&thread[create_count], NULL, Convolution, (void *)convo);
-		create_count++;
+		convo[i].arr_before = arr_before;
+		convo[i].arr_after = arr_after;
+		convo[i].mask = mask;
+		convo[i].col = col;
+		convo[i].num_convo = num_convo;
+		convo[i].i = i;
+		pthread_create(&thread[i], NULL, Convolution, (void *)convo[i]);
 	}
-	
 	
 //----------------------------------------------------------------------------------------------------------------------------------
 
-    	create_count = 0;
+    	int create_count = 0;
     	clock_t begin = clock();
 	while(create_count != row-1)
 	{
