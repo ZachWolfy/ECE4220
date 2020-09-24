@@ -1,10 +1,8 @@
-EXECUTABLE := readfile \
-		element_thread \
+EXECUTABLE := element_thread \
 		row_thread \
 		one_thread \
 
-CODES := readfile.c \
-		element_thread.c \
+CODES := element_thread.c \
 		row_thread.c \
 		one_thread.c \
 
@@ -20,9 +18,6 @@ all:
 clean :
 	rm -f $(EXECUTABLE)
 		
-readfile: readfile.c
-	$(CC) $(CFLAGS) $< -o $@
-	
 element_thread: element_thread.c
 	$(CC) $(CFLAGS) $< -o $@
 	

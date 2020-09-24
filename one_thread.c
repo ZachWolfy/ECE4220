@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
 //============================================================================================================================================================
 //part 1-1
 struct Convo{
@@ -9,6 +10,7 @@ struct Convo{
     int **arr_after;
     int *mask;
     int row, col;
+    int num_convo;
 };
 //============================================================================================================================================================
 void *Convolution(void *item){
@@ -28,6 +30,7 @@ void *Convolution(void *item){
 			(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j+1])*((*struct_item).mask[2]);
 		}
 		(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j])*((*struct_item).mask[1]);
+		(*struct_item).num_convo++;
         }
     }
 
@@ -123,8 +126,11 @@ int main(int argc, char *argv[])
     	//create thread
     	pthread_create(&thread, NULL, Convolution, (void *)convo);
 
+	clock_t begin = clock();
     	pthread_join(thread, NULL);
+    	clock_t end = clock();
     	
+    	printf("Convoluted Array\n");
     	for(int m = 0; m < row; m++)
 	{
 		for(int n = 0; n < col; n++)
@@ -133,6 +139,8 @@ int main(int argc, char *argv[])
 		}
 		printf("\n");
 	}
-	
+	double total_time = (double)(end-begin)/ CLOCKS_PER_SEC;
+	printf("Total time: %lf seconds\n", total_time);
+	printf("Total number of convolution operations performed: %d\n", (*convo).num_convo);
 	return 0;
 }

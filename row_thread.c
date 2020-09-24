@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <time.h>
 //============================================================================================================================================================
 //part 1-2
 struct Location{
@@ -12,6 +13,7 @@ struct Convo{
 	int **arr_after;
 	int *mask;
 	int col;
+	int num_convo;
 	struct Location *locate;
 };
 void *Convolution(void *item)
@@ -30,6 +32,7 @@ void *Convolution(void *item)
 			(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j+1])*((*struct_item).mask[2]);
 		}
 		(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j])*((*struct_item).mask[1]);
+		(*struct_item).num_convo++;
 	}
 	
 	return NULL;
@@ -129,25 +132,22 @@ int main(int argc, char*argv[])
 		(*convo).locate = malloc(sizeof(struct Location));
 		(*convo).locate->i = i;
 		pthread_create(&thread[create_count], NULL, Convolution, (void *)convo);
-		pthread_join(thread[create_count], NULL);
 		create_count++;
 	}
 	
 	
 //----------------------------------------------------------------------------------------------------------------------------------
-    	/*void *sum = NULL;
-    	create_count = 0;
-	for(int i = 0; i < row; i++)
-	{
-		for(int j = 0; j < col; j++)
-		{
-			
-			//arr_after[i][j] = *((int*)sum);
-			create_count++;
 
-		}
-	}*/
+    	create_count = 0;
+    	clock_t begin = clock();
+	while(create_count != row-1)
+	{
+		pthread_join(thread[create_count], NULL);
+		create_count++;
+	}
+	clock_t end = clock();
 //----------------------------------------------------------------------------------------------------------------------------------   
+	printf("Convoluted Array\n");
 	for(int i = 0; i < row; i++)
 	{
 		for(int j = 0; j < col; j++)
@@ -156,6 +156,9 @@ int main(int argc, char*argv[])
 		}
 		printf("\n");
 	}
+	double total_time = (double)(end-begin)/ CLOCKS_PER_SEC;
+	printf("Total time: %lf seconds\n", total_time);
+	printf("Total number of convolution operations performed: %d\n", (*convo).num_convo);
 	
 	return 0;
 
