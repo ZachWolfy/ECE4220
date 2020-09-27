@@ -13,20 +13,24 @@ struct Convo{
 	int **arr_after;
 	int *mask;
 	int *col;
-	int *num_convo;
+	int num_convo;
 	int i;
 };
 void *Convolution(void *item)
 {
+	
     	struct Convo *struct_item = (struct Convo*)item;
-    	int i = (*struct_item).locate->i;
-	for(int j = 0; j < (*struct_item).col; j++)
+    	
+    	int i = (*struct_item).i;
+    	int col = *(*struct_item).col;
+    	
+	for(int j = 0; j < col; j++)
 	{
 		if(j != 0)
 		{
 			(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j-1])*((*struct_item).mask[0]);
 		}
-		if(j != (*struct_item).col-1)
+		if(j != col-1)
 		{
 			(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j+1])*((*struct_item).mask[2]);
 		}
@@ -113,9 +117,9 @@ int main(int argc, char*argv[])
 		mask = malloc(sizeof(int)*mask_col);
 
 		//get masking values
-		fscanf(openfile, "%d", &(*convo).mask[0]);
-		fscanf(openfile, "%d", &(*convo).mask[1]);
-		fscanf(openfile, "%d", &(*convo).mask[2]);
+		fscanf(openfile, "%d", &mask[0]);
+		fscanf(openfile, "%d", &mask[1]);
+		fscanf(openfile, "%d", &mask[2]);
 
 		//close file
 		fclose(openfile);
@@ -123,30 +127,32 @@ int main(int argc, char*argv[])
 //----------------------------------------------------------------------------------------------------------------------------------
     	//declaration
 	struct Convo *convo = malloc(sizeof(struct Convo)*row);
-    	int num_convo;
+    	int num_convo = 0;
     	pthread_t thread[row];
 //----------------------------------------------------------------------------------------------------------------------------------
-
-    	//create threads
 	for(int i = 0; i < row; i++)
 	{
 		convo[i].arr_before = arr_before;
 		convo[i].arr_after = arr_after;
 		convo[i].mask = mask;
-		convo[i].col = col;
+		convo[i].col = &col;
 		convo[i].num_convo = num_convo;
 		convo[i].i = i;
-		pthread_create(&thread[i], NULL, Convolution, (void *)convo[i]);
+		
+	}
+	clock_t begin = clock();
+	
+    	//create threads
+	for(int i = 0; i < row; i++)
+	{
+		pthread_create(&thread[i], NULL, Convolution, &convo[i]);
 	}
 	
 //----------------------------------------------------------------------------------------------------------------------------------
-
-    	int create_count = 0;
-    	clock_t begin = clock();
-	while(create_count != row-1)
+    	
+	for(int i = 0; i < row; i++)
 	{
-		pthread_join(thread[create_count], NULL);
-		create_count++;
+		pthread_join(thread[i], NULL);
 	}
 	clock_t end = clock();
 //----------------------------------------------------------------------------------------------------------------------------------   
@@ -159,9 +165,14 @@ int main(int argc, char*argv[])
 		}
 		printf("\n");
 	}
+	for(int i = 0; i < row; i++)
+	{
+		num_convo += convo[i].num_convo;
+	}
+	
 	double total_time = (double)(end-begin)/ CLOCKS_PER_SEC;
 	printf("Total time: %lf seconds\n", total_time);
-	printf("Total number of convolution operations performed: %d\n", (*convo).num_convo);
+	printf("Total number of convolution operations performed: %d\n", num_convo);
 	
 	return 0;
 
