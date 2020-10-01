@@ -62,10 +62,10 @@ void *Read(void *ptr)
 
 void *Write(void *ptr)
 {
-	struct period_info *per_read = (struct period_info*)ptr;
+	struct period_info *per_write = (struct period_info*)ptr;
 	
-	per_read->period_ns = 1000000;
-	clock_gettime(CLOCK_MONOTONIC, &(per_read->next_period));
+	per_write->period_ns = 1000000;
+	clock_gettime(CLOCK_MONOTONIC, &(per_write->next_period));
 	
 	
 	param.sched_priority = MY_PRIORITY;
@@ -76,9 +76,9 @@ void *Write(void *ptr)
 	{
 		write = buffer;
 		printf("%s", write);
-		inc_period(per_read);
+		inc_period(per_write);
        	/* for simplicity, ignoring possibilities of signal wakes */
-        	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &per_read->next_period, NULL);
+        	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &per_write->next_period, NULL);
 	}
 	return NULL;
 }
@@ -88,17 +88,63 @@ int main()
 	struct period_info *info = malloc(sizeof(struct period_info)*3);
 	info[0].p = "first.txt";
 	info[1].p = "second.txt";
-	
+	pthread_attr_t attr;
+	pthread_t thread[3];
 	int ret;
 	
-	pthread_t thread[3];
-	pthread_create(&thread[0], NULL, Read, &info[0]);
-	pthread_create(&thread[0], NULL, Read, &info[1]);
-	pthread_create(&thread[0], NULL, Write, &info[2]);
+	/* Initialize pthread attributes (default values) */
+        ret = pthread_attr_init(&attr);
+        if (ret) {
+                printf("init pthread attributes failed\n");
+                return ret;
+        }
+        
+        /* Set scheduler policy and priority of pthread */
+        ret = pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+        if (ret) {
+                printf("pthread setschedpolicy failed\n");
+                return ret;
+        }
+        
+        param.sched_priority = MY_PRIORITY;
+        ret = pthread_attr_setschedparam(&attr, &param);
+        if (ret) {
+                printf("pthread setschedparam failed\n");
+                return ret;
+        }
+        
+        /* Use scheduling parameters of attr */
+        ret = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+        if (ret) {
+                printf("pthread setinheritsched failed\n");
+                return ret;
+        }
+        
+	//create pthread
+	ret = pthread_create(&thread[0], NULL, Read, &info[0]);
+	if (ret) {
+                printf("pthread create failed\n");
+                return ret;
+        }
+	ret = pthread_create(&thread[0], NULL, Read, &info[1]);
+	if (ret) {
+                printf("pthread create failed\n");
+                return ret;
+        }
+        
+	ret = pthread_create(&thread[0], NULL, Write, &info[2]);
+	if (ret) {
+                printf("pthread create failed\n");
+                return ret;
+        }
 
 	for(int i = 0; i < 3; i++)
 	{
-		pthread_join(thread[i], NULL);
+		ret = pthread_join(thread[i], NULL);
+		if (ret) {
+                	printf("pthread join failed\n");
+                	return ret;
+        	}
 	}
 	
     return 0;
