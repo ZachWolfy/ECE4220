@@ -31,7 +31,7 @@ static void inc_period(struct period_info *pinfo)
         while (pinfo->next_period.tv_nsec >= 1000000000) {
                 /* timespec nsec overflow */
                 pinfo->next_period.tv_sec++;
-                pinfo->next_period.tv_nsec -= 10000000000;
+                pinfo->next_period.tv_nsec -= 1000000000;
         }
 }
 
@@ -39,7 +39,7 @@ void *Read(void *ptr)
 {
 	struct period_info *per_read = (struct period_info*)ptr;
 	
-	per_read->period_ns = 1500000;
+	per_read->period_ns = 2000000;
 	clock_gettime(CLOCK_MONOTONIC, &(per_read->next_period));
 	
 	param.sched_priority = MY_PRIORITY;
@@ -126,13 +126,13 @@ int main()
                 printf("pthread create failed\n");
                 return ret;
         }
-	ret = pthread_create(&thread[0], NULL, Read, &info[1]);
+	ret = pthread_create(&thread[1], NULL, Read, &info[1]);
 	if (ret) {
                 printf("pthread create failed\n");
                 return ret;
         }
         
-	ret = pthread_create(&thread[0], NULL, Write, &info[2]);
+	ret = pthread_create(&thread[2], NULL, Write, &info[2]);
 	if (ret) {
                 printf("pthread create failed\n");
                 return ret;
