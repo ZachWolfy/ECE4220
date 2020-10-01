@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <sys/timerfd.h>
 
-#define MY_PRIORITY 51  // kernel is priority 50
+#define MY_PRIORITY 50  // kernel is priority 50
 #define BUFFER_MAX 300
 
 struct period_info {
@@ -23,24 +23,12 @@ struct sched_param param;
 
 char buffer[BUFFER_MAX];
 
-//increment period
-static void inc_period(struct period_info *pinfo)
-{
-        pinfo->next_period.tv_nsec += pinfo->period_ns;
- 
-        while (pinfo->next_period.tv_nsec >= 1000000000) {
-                /* timespec nsec overflow */
-                pinfo->next_period.tv_sec++;
-                pinfo->next_period.tv_nsec -= 1000000000;
-        }
-}
-
 void *Read(void *ptr)
 {
 	struct period_info *per_read = (struct period_info*)ptr;
 	
-	param.sched_priority = MY_PRIORITY;
-	sched_setscheduler(0, SCHED_FIFO, &param);
+	//param.sched_priority = MY_PRIORITY;
+	//sched_setscheduler(0, SCHED_FIFO, &param);
 	
 	clock_gettime(CLOCK_MONOTONIC, &(per_read->next_period));
 	FILE *read_file = fopen(per_read->p, "r");
@@ -49,7 +37,7 @@ void *Read(void *ptr)
 	{
 		puts(buffer);
 		
-		per_read->next_period.tv_nsec += 20000000;
+		per_read->next_period.tv_nsec += 400000;
        	/* for simplicity, ignoring possibilities of signal wakes */
         	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &per_read->next_period, NULL);
         	
@@ -62,8 +50,8 @@ void *Write(void *ptr)
 {
 	struct period_info *per_write = (struct period_info*)ptr;
 	
-	param.sched_priority = MY_PRIORITY;
-	sched_setscheduler(0, SCHED_FIFO, &param);
+	//param.sched_priority = MY_PRIORITY;
+	
 	
 	clock_gettime(CLOCK_MONOTONIC, &(per_write->next_period));
 
@@ -74,7 +62,7 @@ void *Write(void *ptr)
 		write = buffer;
 		printf("%s", write);
 		
-		per_write->next_period.tv_nsec += 1000000;
+		per_write->next_period.tv_nsec += 200000;
        	/* for simplicity, ignoring possibilities of signal wakes */
         	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &per_write->next_period, NULL);
 	}
@@ -90,37 +78,12 @@ int main()
 	pthread_t thread[3];
 	int ret;
 	
-	info[0].period_ns = 1000000;
-	info[1].period_ns = 2000000;
-	info[1].period_ns = 1500000;
-	
-	/* Initialize pthread attributes (default values) */
-        ret = pthread_attr_init(&attr);
-        if (ret) {
-                printf("init pthread attributes failed\n");
-                return ret;
-        }
-        
-        /* Set scheduler policy and priority of pthread */
-        ret = pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
-        if (ret) {
-                printf("pthread setschedpolicy failed\n");
-                return ret;
-        }
+	info[0].period_ns = 100000;
+	info[1].period_ns = 300000;
+	info[1].period_ns = 200000;
         
         param.sched_priority = MY_PRIORITY;
-        ret = pthread_attr_setschedparam(&attr, &param);
-        if (ret) {
-                printf("pthread setschedparam failed\n");
-                return ret;
-        }
-        
-        /* Use scheduling parameters of attr */
-        ret = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-        if (ret) {
-                printf("pthread setinheritsched failed\n");
-                return ret;
-        }
+        sched_setscheduler(0, SCHED_FIFO, &param);
         
 	//create pthread
 	ret = pthread_create(&thread[0], NULL, Read, &info[0]);
