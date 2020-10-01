@@ -24,7 +24,7 @@ struct sched_param param;
 char buffer[BUFFER_MAX];
 
 //increment period
-static void inc_period(struct period_info *pinfo) 
+static void inc_period(struct period_info *pinfo)
 {
         pinfo->next_period.tv_nsec += pinfo->period_ns;
  
@@ -39,19 +39,17 @@ void *Read(void *ptr)
 {
 	struct period_info *per_read = (struct period_info*)ptr;
 	
-	per_read->period_ns = 2000000;
-	clock_gettime(CLOCK_MONOTONIC, &(per_read->next_period));
-	
 	param.sched_priority = MY_PRIORITY;
 	sched_setscheduler(0, SCHED_FIFO, &param);
 	
+	clock_gettime(CLOCK_MONOTONIC, &(per_read->next_period));
 	FILE *read_file = fopen(per_read->p, "r");
 	
 	while(fgets(buffer, BUFFER_MAX, read_file) != NULL)
 	{
 		puts(buffer);
 		
-		inc_period(per_read);
+		per_read->next_period.tv_nsec += 20000000;
        	/* for simplicity, ignoring possibilities of signal wakes */
         	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &per_read->next_period, NULL);
         	
@@ -64,19 +62,19 @@ void *Write(void *ptr)
 {
 	struct period_info *per_write = (struct period_info*)ptr;
 	
-	per_write->period_ns = 1000000;
-	clock_gettime(CLOCK_MONOTONIC, &(per_write->next_period));
-	
-	
 	param.sched_priority = MY_PRIORITY;
 	sched_setscheduler(0, SCHED_FIFO, &param);
+	
+	clock_gettime(CLOCK_MONOTONIC, &(per_write->next_period));
+
 	char *write;
 	
 	for(int i = 0; i < 20; i++)
 	{
 		write = buffer;
 		printf("%s", write);
-		inc_period(per_write);
+		
+		per_write->next_period.tv_nsec += 1000000;
        	/* for simplicity, ignoring possibilities of signal wakes */
         	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &per_write->next_period, NULL);
 	}
@@ -91,6 +89,10 @@ int main()
 	pthread_attr_t attr;
 	pthread_t thread[3];
 	int ret;
+	
+	info[0].period_ns = 1000000;
+	info[1].period_ns = 2000000;
+	info[1].period_ns = 1500000;
 	
 	/* Initialize pthread attributes (default values) */
         ret = pthread_attr_init(&attr);
