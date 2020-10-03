@@ -28,7 +28,7 @@ void *Convolution(void *item){
 		{
 			(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j-1])*((*struct_item).mask[0]);
 		}
-		//if last column, ignore the value after if not enter if
+		//if first column ignore the value before if not enter if
 		if(j != (*struct_item).col-1)
 		{
 			(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j+1])*((*struct_item).mask[2]);
@@ -47,12 +47,12 @@ int Check(int argc, char *argv[])
 {
 	if(argc > 2)
 	{
-		printf("Error too many arguments \n(how to run: ./one_thread MxN.txt \n");
+		printf("Error too many arguments. \nhow to run: ./one_thread MxN.txt \n");
 		return 0;
 	}
 	else if(argc < 2)
 	{
-		printf("Error expected one more argument \n(how to run: ./one_thread MxN.txt \n"");
+		printf("Error expected one more argument \nhow to run: ./one_thread MxN.txt \n");
 		return 0;
 	}
     	return 1;//if everything checks well return 1 as in true

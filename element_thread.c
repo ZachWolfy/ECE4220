@@ -13,43 +13,48 @@ struct Convo{
 	int i, j;
 };
 //============================================================================================================================================================
+//convoluted function
 void *Convolution(void *item){
 
     	struct Convo *struct_item = (struct Convo*)item;
     	int i = (*struct_item).i;
     	int j = (*struct_item).j;
     	int col = *(*struct_item).col;
-    	
+    	//if first column ignore the value before if not enter if
     	if(j != 0)
 	{
 		(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j-1])*((*struct_item).mask[0]);
 	}
+	//if first column ignore the value before if not enter if
 	if(j != col-1)
 	{
 		(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j+1])*((*struct_item).mask[2]);
 	}
+	//middle element value
 	(*struct_item).arr_after[i][j] += ((*struct_item).arr_before[i][j])*((*struct_item).mask[1]);
-	(*struct_item).num_convo++;
+	(*struct_item).num_convo++; // increase number of convolution
 	
     	return NULL; 
 }
 //============================================================================================================================================================
+//checking function to check if code is run properly by stating name of file
 int Check(int argc, char *argv[])
 {
 	if(argc > 2)
 	{
-		printf("Error too many arguments\n");
+		printf("Error too many arguments \nhow to run: ./one_thread MxN.txt \n");
 		return 0;
 	}
 	else if(argc < 2)
 	{
-		printf("Error expected one more argument\n");
+		printf("Error expected one more argument \nhow to run: ./element_thread MxN.txt \n");
 		return 0;
 	}
     	return 1;//if everything checks well return 1 as in true
 }
 
 //============================================================================================================================================================
+//main function
 int main(int argc, char *argv[])
 {
     	//read file
@@ -60,7 +65,7 @@ int main(int argc, char *argv[])
 	{
 		return 0;
 	}
-
+	//open file
     	char *p = (char*)malloc(sizeof(char)*1);//saves file name in heap
     	p = argv[1];
     	printf("Opening %s...\n", p);//print we are opening file number given
@@ -72,7 +77,7 @@ int main(int argc, char *argv[])
 //----------------------------------------------------------------------------------------------------------------------------------
 	FILE *openfile = fopen(p, "r");
 
-
+	// if fail to open file
 	if(openfile == NULL)
 	{
 		printf("File does not exist. Please use a proper data file and include it in the same directory as the program.\n");
@@ -80,6 +85,7 @@ int main(int argc, char *argv[])
 		free(p);
 		return 0;
     	}
+	//success opening file
 	else
 	{
 		int i,j;
@@ -126,21 +132,23 @@ int main(int argc, char *argv[])
     	int create_count = 0;
 //----------------------------------------------------------------------------------------------------------------------------------
 	struct Convo *convo = malloc(sizeof(struct Convo)*total_elements);
+	//all struct data is pointing to the matrix arrays and appropriate values
 	for(int i = 0; i < row; i++)
 	{
 		for(int j = 0; j < col; j++)
 		{
-			convo[create_count].arr_before = arr_before;
-			convo[create_count].arr_after = arr_after;
-			convo[create_count].mask = mask;
-			convo[create_count].col = &col;
-			convo[create_count].num_convo = num_convo;
-			convo[create_count].j = j;
-			convo[create_count].i = i;
+			convo[create_count].arr_before = arr_before; //original matrix
+			convo[create_count].arr_after = arr_after; // result matrix
+			convo[create_count].mask = mask; //masking matrix
+			convo[create_count].col = &col; //total columns
+			convo[create_count].num_convo = num_convo; //number of convolution
+			convo[create_count].j = j; //element row location
+			convo[create_count].i = i; //element column location
 			create_count++;
 		}
 	}
 	create_count = 0;
+	//begin time
 	clock_t begin = clock();
 	
     	//create threads
@@ -154,15 +162,16 @@ int main(int argc, char *argv[])
 //----------------------------------------------------------------------------------------------------------------------------------
     	
     	create_count = 0;
-    	
+    	//join threads
 	while(create_count != total_elements)
 	{
 		pthread_join(thread[create_count], NULL);
 		create_count++;
 	}
-	
+	//end time
 	clock_t end = clock();
  //----------------------------------------------------------------------------------------------------------------------------------   
+	//print convoluted matrix, time and number of convolutions	
 	printf("Convoluted Array\n");
 	for(int i = 0; i < row; i++)
 	{
@@ -172,8 +181,6 @@ int main(int argc, char *argv[])
 		}
 		printf("\n");
 	}
-	printf("row: %d\n", row);
-	printf("col: %d\n", col);
 	create_count = 0;
 	while(create_count != total_elements)
 	{
@@ -183,5 +190,6 @@ int main(int argc, char *argv[])
 	double total_time = (double)(end-begin)/ CLOCKS_PER_SEC;
 	printf("Total time: %lf seconds\n", total_time);
 	printf("Total number of convolution operations performed: %d\n", num_convo);
+
 	return 0;
 }
