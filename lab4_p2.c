@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define BASE_ADD	0x3F200000
 #define VALUE		0b000000000000000010000000000000000
