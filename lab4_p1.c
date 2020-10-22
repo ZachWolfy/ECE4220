@@ -10,43 +10,62 @@
 #include <sys/stat.h>
 
 char buffer[2];
+int y;
+struct timeval x;
+int numb1;
+
+void *ReadBPE()
+{
+	//open pipe "/tmp/BP_pipe"
+	int np = open("/tmp/BP_pipe", O_RDONLY);
+	int bpread;
+	int numb2;
+	int x1, x2, xbp, y1, y2. ybp;
+	
+	struct timeval button_buffer;
+
+	while(1)
+	{
+		//read from "/tmp/BP_pipe"
+		bpread = read(np, &button_buffer, sizeof(struct timeval));
+		
+		//get previous gps
+		y1 = y;
+		x1 = x;
+
+		//wait until global buffer is updated.
+		numb2 = numb1;
+		while(numb2 == numb1){}
+		
+		//when global is updated
+		y2 = y;
+		x2 = x;
+		
+		//interpolation
+		ybp = (((y2-y1)/(x2-x1))*(xbp-x1))+y1;
+		printf("xbp: %d, ybp: %d", xbp, ybp);
+		printf("x1: %d, y1: %d", x1, y1);
+		printf("x2: %d, y2: %d", x2, y2);
+	}
+}
 
 int main()
 {
 	//open pipe
 	int np = open("/tmp/N_pipe1", O_RDONLY);
+
 	//create thread read bpe
-	pthread readbpe;
+	pthread_t readbpe;
 	pthread_create(&readbpe, NULL, ReadBPE, NULL);
-	pthread_join(readbpe, NULL);
+
 	//while loop
 	while(1)
 	{
-		//read from pipe and get the time stamp and save in global buffer
-		numb = read(np, buffer[0], sizeof(int));
-	}
-}
-
-void *ReadBPE()
-{
-	//open pipe "/tmp/BP_pipe"
-	int bp = open("/tmp/BP_pipe", O_RDONLY);
-	int read;
-	while(1)
-	{
-		//read from "/tmp/BP_pipe"
-		read = read(bp, int, sizeof(int));
+		//read from pipe 
+		numb1 = read(np, buffer, sizeof(int));
 		
-		//wait until global buffer is updated.
-		int read1 = read;
-		if(read1 == read)
-		{
-			usleep(10);
-			read1 = read;
-		}
-		//interpolation
-		m = (y2-y1)/(x2-x1);
-		ybp = (m)(xbp-x1)+y1;
-		printf();
+		//get the time stamp and save in global buffer
+		y = buffer[0];
+		gettimeofday(&x, NULL);
 	}
 }
