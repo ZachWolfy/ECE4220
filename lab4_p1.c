@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 char buffer[2];
 
