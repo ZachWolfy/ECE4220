@@ -16,13 +16,12 @@ int main()
 	//create thread read bpe
 	pthread readbpe;
 	pthread_create(&readbpe, NULL, ReadBPE, NULL);
+	pthread_join(readbpe, NULL);
 	//while loop
 	while(1)
 	{
-		//read from pipe
-		numb = read(np, int, sizeof(int));
-		//get the time stamp and save in global buffer
-		
+		//read from pipe and get the time stamp and save in global buffer
+		numb = read(np, buffer[0], sizeof(int));
 	}
 }
 
@@ -35,10 +34,17 @@ void *ReadBPE()
 	{
 		//read from "/tmp/BP_pipe"
 		read = read(bp, int, sizeof(int));
+		
 		//wait until global buffer is updated.
-		
+		int read1 = read;
+		if(read1 == read)
+		{
+			usleep(10);
+			read1 = read;
+		}
 		//interpolation
-		
+		m = (y2-y1)/(x2-x1);
+		ybp = (m)(xbp-x1)+y1;
 		printf();
 	}
 }
