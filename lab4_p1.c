@@ -10,7 +10,6 @@
 #include <sys/stat.h>
 
 char buffer[2];
-int y;
 struct timeval x;
 int numb1;
 
@@ -30,7 +29,7 @@ void *ReadBPE()
 		bpread = read(np, &button_buffer, sizeof(struct timeval));
 		
 		//get previous gps
-		y1 = y;
+		y1 = buffer[0];
 		x1 = x;
 
 		//wait until global buffer is updated.
@@ -65,7 +64,6 @@ int main()
 		numb1 = read(np, buffer, sizeof(int));
 		
 		//get the time stamp and save in global buffer
-		y = buffer[0];
 		gettimeofday(&x, NULL);
 	}
 }
