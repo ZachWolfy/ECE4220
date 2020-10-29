@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sempahore.h>
 
 struct print
 {
@@ -54,6 +55,11 @@ void *ChildThread(void *ptr)
 
 	//interpolation
 	data.ybp = (((data.y2-data.y1)/(data.x2-data.x1))*(data.xbp-data.x1))+data.y1;
+	
+	int pd = open("/tmp/Print_pipe", O_WRONLY);
+	pthread_t printth;
+	pthread_create(&printth, NULL, PrintFunction, NULL);
+	write(pd, &data, sizeof(struct print));
 }
 
 void *PrintFunction()
@@ -73,9 +79,9 @@ void *PrintFunction()
 int main()
 {
 	//open pipe for gps device
-	int np = open("/tmp/N_pipe1", O_RDONLY);
-  //open pipe for print pipe
-  int pp = open("/tmp/P_pipe", O_RDONLY);
+	int nd = open("/tmp/N_pipe1", O_RDONLY);
+  	//open pipe for print pipe
+  	int pd = open("/tmp/P_pipe", O_RDONLY);
   
 	//create thread read bpe
 	pthread_t readbpe;
