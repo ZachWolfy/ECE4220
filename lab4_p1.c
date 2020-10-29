@@ -8,14 +8,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-struct print()
+struct print
 {
 	struct timeval x1, x2, xbp;
 	int y1, y2, ybp;
-}
+};
 
 char buffer[2];
-int y;
 struct timeval x;
 int numb1;
 
@@ -24,8 +23,6 @@ void *ReadBPE()
 	//open pipe "/tmp/BP_pipe"
 	int np = open("/tmp/BP_pipe", O_RDONLY);
 	int bpread;
-
-	
 	struct timeval button_buffer;
 
 	while(1)
@@ -36,24 +33,27 @@ void *ReadBPE()
 		pthread_create(&child, NULL, ChildThread, &button_buffer);
 	}
 }
-void *ChildThread()
+void *ChildThread(void *ptr)
 {
 	int numb2;
-	int x1, x2, xbp, y1, y2. ybp;
 	numb2 = numb1;
+	
+	struct print data;
+	struct data.xbp = (struct timeval*)ptr;
+	
 	//get previous gps
-	y1 = y;
-	x1 = x;
+	data.y1 = buffer[0];
+	data.x1 = x;
 
 	//wait until global buffer is updated.
 	while(numb2 == numb1){}
 
 	//when global is updated
-	y2 = y;
-	x2 = x;
+	data.y2 = y;
+	data.x2 = x;
 
 	//interpolation
-	ybp = (((y2-y1)/(x2-x1))*(xbp-x1))+y1;
+	data.ybp = (((data.y2-data.y1)/(data.x2-data.x1))*(data.xbp-data.x1))+data.y1;
 }
 
 void *PrintFunction()
@@ -64,9 +64,9 @@ void *PrintFunction()
 	read(pd, &data, size of(struct print));
 	
 	sem_wait(&mySem);
-	printf("xbp: %d, ybp: %d", xbp, ybp);
-	printf("x1: %d, y1: %d", x1, y1);
-	printf("x2: %d, y2: %d", x2, y2);
+	printf("xbp: %d, ybp: %d", data.xbp, data.ybp);
+	printf("x1: %d, y1: %d", data.x1, data.y1);
+	printf("x2: %d, y2: %d", data.x2, data.y2);
 	sem_post(&mySem);
 }
 
