@@ -53,7 +53,7 @@ int main(void)
 			*GPEDS0 = VALUE;
 		}
 		//wait until next period
-		period += period;
+		period += 60000000;
 		clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &period, NULL);
 	}
 	
