@@ -71,9 +71,12 @@ void *ChildThread(void *ptr)
 	
 	//open print pipe and create thread to the print pipe
 	int pd = open("/tmp/Print_pipe", O_WRONLY);
+	write(pd, &data, sizeof(struct print));
+	close(pd);
+	
 	pthread_t printth;
 	pthread_create(&printth, NULL, PrintFunction, NULL);
-	write(pd, &data, sizeof(struct print));
+	
 
 	pthread_exit(NULL);
 }
