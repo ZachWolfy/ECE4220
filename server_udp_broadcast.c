@@ -1,8 +1,3 @@
-/* 	Name       : 	server_udp_broadcast.c
-	Author     : 	Luis A. Rivera
-	Description: 	Simple server (broadcast)
-					ECE4220/7220		*/
-					
 #define _GNU_SOURCE     /* To get defns of NI_MAXSERV and NI_MAXHOST */
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,7 +75,7 @@ int main(int argc, char *argv[])
    while (1)
    {
 	   // bzero: to "clean up" the buffer. The messages aren't always the same length...
-	   bzero(buffer,MSG_SIZE);		// sets all values to zero. memset() could be used
+	   //bzero(buffer,MSG_SIZE);		// sets all values to zero. memset() could be used
 
 	   // receive from a client
 	   n = recvfrom(sock, buffer, MSG_SIZE, 0, (struct sockaddr *)&addr, &fromlen);
@@ -93,6 +88,7 @@ int main(int argc, char *argv[])
 		//if not don't send anyhthing
 		if(strncmp(buffer, WHOIS, 5) == 0)
 		{
+			//if I am master create and send the message that I am the master
 			if(master == 1)
 			{
 				n = sendto(sock, "Wan on 128.206.19.16 is the master\n", 35, 0,
@@ -100,6 +96,7 @@ int main(int argc, char *argv[])
 				if (n  < 0)
 					error("sendto WHOIS master");
 			}
+			//if I am not the master send blank
 			else
 			{
 				n = sendto(sock, "\n", 35, 0,
@@ -134,19 +131,26 @@ int main(int argc, char *argv[])
 		//compare if haven't lose to see who is the master
 		else if(strncmp(buffer, CHECK, 1) == 0 && lose == 0)
 		{
-	
+			//count white space to get sender number of digits in IP address 
+			int count_white_space = 0;
+			int i;
+			
+			//loop to find white space and count how many characters
+			//in the string and at most 2 whitespace
+			for(i = 0; count_white_space < 2; i++)
+			{
+				//if found whitespace increment by 1 
+				if(buffer[i] == ' ')
+				{
+					count_white_space++;
+				}
+			}
+			
 			//get random number from sender
-			strcpy(copy, buffer+16);
+			strcpy(copy, buffer+i);
+			
 			sscanf(copy, "%d", &rcvrand);
-			
-			/*printf("%s\n", copy);
-			//get the ascii value of the sender's random value
-			rcvascii = strcmp(buffer, copy);
-			//minus 0 to get the integer value
-			printf("%d\n", rcvascii);
-			rcvrand = rcvascii - '0';
-			printf("%d\n", rcvrand);*/
-			
+						
 			//if receiver has higher generated number then I lose
 			if(rcvrand > random)
 			{
@@ -160,25 +164,39 @@ int main(int argc, char *argv[])
 			}
 			//if random number generated is the same then the person with
 			//the highest IP wins
-			else
-			{printf("enter same\n");
-				strncpy(copy, buffer, 16);
-				result = strncmp(IP2, copy, 16);
+			else if(rcvrand == random)
+			{
+				//number of character in the string -2 to remove count of pound "#"
+				//and whitespace " "
+				i = i - 2;
+				
+				//clear string and copy just the ip address by offset the starting
+				//point of copy by 2 and number of digits with dot "." in the IP
+				memset(copy, 0, sizeof(copy));
+				strncpy(copy, buffer+2, i);
+				
+				//get result value from string compare
+				result = strncmp(IP2+2, copy, i);
+				//if result is more than 0 that means I have won and I am the master
 				if(result > 0)
-				{printf("enter win same\n");
+				{
 					master = 1;
 				}
-				else
-				{printf("enter lose same\n");
+				//if result is less than 0 that means I have lost and reset master flag
+				//and change lose flag to 1
+				else if(result < 0)
+				{
 					master = 0;
 					lose = 1;
 				}
 			}
-			n = sendto(sock, "", 32, 0,
+			//send something so client does not stop waiting.
+			n = sendto(sock, "\n", 32, 0,
     		      (struct sockaddr *)&addr, fromlen);
 			if (n  < 0)
 				error("sendto");
 		}
+		//if sender sends other than "WHOIS", "VOTE", "# IP RANDOM_NUMBER"
 		else
 		{
 			n = sendto(sock, "Got a message. Was it from you?\n", 32, 0,
@@ -189,7 +207,9 @@ int main(int argc, char *argv[])
 		
 		//clear string
 		memset(mygenerator, 0, sizeof(mygenerator));
+		memset(copy, 0, sizeof(copy));
 		memset(random_s, 0, sizeof(random_s));
+		memset(buffer, 0, sizeof(buffer));
 		
        // To send a broadcast message, we need to change IP address to broadcast address
        // If we don't change it (with the following line of code), the message
