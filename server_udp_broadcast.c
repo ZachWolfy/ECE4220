@@ -2,7 +2,8 @@
 	Author     : 	Luis A. Rivera
 	Description: 	Simple server (broadcast)
 					ECE4220/7220		*/
-
+					
+#define _GNU_SOURCE     /* To get defns of NI_MAXSERV and NI_MAXHOST */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -13,6 +14,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include <linux/if_link.h>
+#include <ifaddrs.h>
 
 #define MSG_SIZE 40			// message size
 #define WHOIS "WHOIS"
@@ -99,7 +102,7 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				n = sendto(sock, "", 35, 0,
+				n = sendto(sock, "\n", 35, 0,
     		      (struct sockaddr *)&addr, fromlen);
 				if (n  < 0)
 					error("sendto WHOIS not master");
@@ -110,14 +113,14 @@ int main(int argc, char *argv[])
 		{
 			//reset master and lose flag
 			lose = 0;
-			master = 0;
+			master = 1;
 			
 			//copy # ip
 			strncpy(mygenerator, IP2, 16);
 			mygenerator[16] = '\0';
 			
 			//get random value generate
-			random = rand() % 100;
+			random = 1 + rand() % 10;
 			sprintf(random_s, "%d", random);
 						
 			//copy into string
@@ -176,18 +179,25 @@ int main(int argc, char *argv[])
 			if (n  < 0)
 				error("sendto");
 		}
-
-
+		else
+		{
+			n = sendto(sock, "Got a message. Was it from you?\n", 32, 0,
+    		      (struct sockaddr *)&addr, fromlen);
+			if (n  < 0)
+				error("sendto");
+		}
+		
+		//clear string
+		memset(mygenerator, 0, sizeof(mygenerator));
+		memset(random_s, 0, sizeof(random_s));
+		
        // To send a broadcast message, we need to change IP address to broadcast address
        // If we don't change it (with the following line of code), the message
        // would be transmitted to the address from which the message was received.
 	   // You may need to change the address below (check ifconfig)
        addr.sin_addr.s_addr = inet_addr("192.168.1.255");		// broadcast address
 
-       /*n = sendto(sock, "Got a message. Was it from you?\n", 32, 0,
-    		      (struct sockaddr *)&addr, fromlen);
-       if (n  < 0)
-    	   error("sendto");*/
+      
    }
 
    return 0;
