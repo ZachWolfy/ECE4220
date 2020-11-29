@@ -164,10 +164,10 @@ int main(int argc, char* argv)
 		
 		//for efficency getting the overall time
 		vector<double>layersTimes;
-        double freq = getTickFrequency() / 1000;
-        double t = net.getPerfProfile(layersTimes) / freq;
-        string label = format("Inference time for a frame : %.2f ms", t);
-        putText(frame, label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+        	double freq = getTickFrequency() / 1000;
+        	double t = net.getPerfProfile(layersTimes) / freq;
+        	string label = format("Inference time for a frame : %.2f ms", t);
+        	putText(frame, label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
 		
 		//write the frame with detection boxes
 		Mat detectedFrame;
