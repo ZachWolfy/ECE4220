@@ -1,10 +1,12 @@
-EXECUTABLE := element_thread \
-		row_thread \
-		one_thread \
+EXECUTABLE := main \
+            element_thread \
+		        row_thread \
+		    		one_thread \
 
-CODES := element_thread.c \
-		row_thread.c \
-		one_thread.c \
+CODES :=  main.c \ 
+        element_thread.c \
+	    	row_thread.c \
+		    one_thread.c \
 
 CFLAGS := -std=c11 -O0 -Wall -ggdb -pthread
 
@@ -17,7 +19,10 @@ all:
 	
 clean :
 	rm -f $(EXECUTABLE)
-		
+  
+main: main.c
+  $(CC) $(CFLAGS) $< -o $@
+
 element_thread: element_thread.c
 	$(CC) $(CFLAGS) $< -o $@
 	
