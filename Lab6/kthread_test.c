@@ -27,27 +27,27 @@
 
 MODULE_LICENSE("GPL");
 
-#define ADD_BASE 0x3F200000 //address base for GPIO
-#define GPFSEL1_OFFSET 0X04/4 //GPSET0 offset from GPIO address base
-#define GPFSEL2_OFFSET 0X08/4 //GPSET0 offset from GPIO address base
-#define GPSET0_OFFSET 0X01C/4 //GPSET0 offset from GPIO address base
-#define GPCLR0_OFFSET 0X28/4 //GPCLR0 offset from GPIO address base
-#define GPEDS0_OFFSET 0x40/4 //GPEDS0 offset from GPIO address base
-#define GPAREN0_OFFSET 0x7C/4 //GPAREN0 offset from GPIO address base
-#define GPPUD_OFFSET 0x94/4 //GPPUD offset from GPIO address base
+#define ADD_BASE 0x3F200000 	//address base for GPIO
+#define GPFSEL1_OFFSET 0X04/4 	//GPSET0 offset from GPIO address base
+#define GPFSEL2_OFFSET 0X08/4 	//GPSET0 offset from GPIO address base
+#define GPSET0_OFFSET 0X01C/4 	//GPSET0 offset from GPIO address base
+#define GPCLR0_OFFSET 0X28/4 	//GPCLR0 offset from GPIO address base
+#define GPEDS0_OFFSET 0x40/4 	//GPEDS0 offset from GPIO address base
+#define GPAREN0_OFFSET 0x7C/4 	//GPAREN0 offset from GPIO address base
+#define GPPUD_OFFSET 0x94/4 	//GPPUD offset from GPIO address base
 #define GPPUDCLK0_OFFSET 0x98/4 //GPPUDCLK0 offset from GPIO address base
 
-#define VALUE 0b111110000000000000000
-#define MSG_SIZE 50
-#define CDEV_NAME "Lab6"	// "YourDevName"
+#define VALUE 0b111110000000000000000	//BCM16-20 for button 1 to 5
+#define MSG_SIZE 50		//message siZE
+#define CDEV_NAME "Lab6"	// "YourDevName" device driver name
 
 // structure for the kthread.
 static struct task_struct *kthread1;
 
 int mydev_id;
-int freq;
-static int major; 
-static char msg[MSG_SIZE];
+int freq;			//frequency value
+static int major; 		//major device value
+static char msg[MSG_SIZE];	//message buffer
 
 static irqreturn_t button_isr(int irq, void *dev_id)
 {
@@ -62,22 +62,27 @@ static irqreturn_t button_isr(int irq, void *dev_id)
 	unsigned long button = ioread32(GPEDS0);
 	printk("%X\n",button);
 
+	//user press the first button then change to given frequency
 	if(button == 0x10000)
 	{
 		freq = 1000;
-	}	
+	}
+	//user press the second button then change to given frequency	
 	else if(button == 0x20000)
 	{
 		freq = 750;
 	}
+	//user press the third button then change to given frequency
 	else if(button == 0x40000)
 	{
 		freq = 500;
 	}
+	//user press the fourth button then change to given frequency
 	else if(button == 0x80000)
 	{
 		freq = 250;
 	}
+	//user press the fifth button then change to given frequency
 	else if(button == 0x100000)
 	{
 		freq = 100;
@@ -109,22 +114,28 @@ static ssize_t device_write(struct file *filp, const char __user *buff, size_t l
 	
 	// You may want to remove the following printk in your final version.
 	printk("Message from user space: %s\n", msg);
+	//if user enters specific characters
+	//user enters character A then change to given frequency
 	if(msg[0] == 'A')
 	{
 		freq = 1000;
-	}	
+	}
+	//user enters character B then change to given frequency
 	else if(msg[0] == 'B')
 	{
 		freq = 750;
 	}
+	//user enters character C then change to given frequency
 	else if(msg[0] == 'C')
 	{
 		freq = 500;
 	}
+	//user enters character D then change to given frequency
 	else if(msg[0] == 'D')
 	{
 		freq = 250;
 	}
+	//user enters character E then change to given frequency
 	else if(msg[0] == 'E')
 	{
 		freq = 100;
@@ -140,6 +151,7 @@ static struct file_operations fops = {
 // Function to be associated with the kthread; what the kthread executes.
 int kthread_fn(void *ptr)
 {
+	//GPIO address pointers declaration
 	unsigned long *GPFSEL0 = (unsigned long*)ioremap(ADD_BASE, 4096);
 	unsigned long *GPSET0 = GPFSEL0 + GPSET0_OFFSET;
 	unsigned long *GPCLR0 = GPFSEL0 + GPCLR0_OFFSET;
@@ -164,10 +176,13 @@ int kthread_fn(void *ptr)
 	while(1)
 	{
 		//generate square wave sound
+		//set 1 to BCM6
 		iowrite32(1 << 6, GPSET0);
+		//delay
 		udelay(freq);
-		//turns off the speaker
+		//clear BCM6
 		iowrite32(1 << 6, GPCLR0);
+		//delay
 		udelay(freq);
 	
 		//msleep(1000);	// good for > 10 ms
@@ -193,6 +208,7 @@ int kthread_fn(void *ptr)
 }
 int thread_init(void)
 {
+	//for device driver, this is required to register and communicate with user space program
 	major = register_chrdev(0, CDEV_NAME, &fops);
 	if (major < 0) {
      		printk("Registering the character device failed with %d\n", major);
@@ -236,8 +252,10 @@ int thread_init(void)
 	//enable(79)
 	enable_irq(79);
 	
+	//kthread creating
 	kthread1 = kthread_create(kthread_fn, NULL, kthread_name);
 
+	//wake up kthread process
 	if((kthread1))	// true if kthread creation is successful
 	{
 		printk("Inside if\n");
@@ -259,8 +277,8 @@ void thread_cleanup(void) {
 	if(!ret)
 		printk("Kthread stopped\n");
 		
-	free_irq(79, &mydev_id);
-	unregister_chrdev(major, CDEV_NAME);
+	free_irq(79, &mydev_id);	//free_irq
+	unregister_chrdev(major, CDEV_NAME); //unregister device driver
 }
 
 module_init(thread_init);

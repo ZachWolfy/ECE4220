@@ -43,14 +43,16 @@ int main(void)
 						// One must be careful about message sizes on both sides.
 		if(buffer[0] == '!')	// If the first character is '!', get out
 			break;
-		
+		//if user enters other than A to E
 		if(buffer[0] > 'E' || buffer[0] < 'A')
 		{
 			printf("Write failed, enter characters from A to E\n");
 		}
 		else
 		{
+			//write onto device driver to kernel module
 			dummy = write(cdev_id, buffer, sizeof(buffer));
+			//if failed to write, then leave
 			if(dummy != sizeof(buffer)) {
 				printf("Write failed, leaving...\n");
 				break;
