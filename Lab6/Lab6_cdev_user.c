@@ -44,10 +44,17 @@ int main(void)
 		if(buffer[0] == '!')	// If the first character is '!', get out
 			break;
 		
-		dummy = write(cdev_id, buffer, sizeof(buffer));
-		if(dummy != sizeof(buffer)) {
-			printf("Write failed, leaving...\n");
-			break;
+		if(buffer[0] > 'E' || buffer[0] < 'A')
+		{
+			printf("Write failed, enter characters from A to E\n");
+		}
+		else
+		{
+			dummy = write(cdev_id, buffer, sizeof(buffer));
+			if(dummy != sizeof(buffer)) {
+				printf("Write failed, leaving...\n");
+				break;
+			}
 		}
 	}
 	
