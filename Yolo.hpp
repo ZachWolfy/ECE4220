@@ -70,7 +70,7 @@ YoloNetwork::~YoloNetwork()
 {
 
 }
-//current frame of image or webcam function
+//current frame of image or webcam function to detect bounding boxes and classes
 void YoloNetwork::CurrentFrame(Mat cap)
 {
 	//convert the image to a 4-D blob
@@ -135,7 +135,7 @@ void YoloNetwork::CurrentFrame(Mat cap)
 	
 	return;
 }
-
+//return object function
 vector<yoloClass> YoloNetwork::outputObject()
 {
 	return this->object;

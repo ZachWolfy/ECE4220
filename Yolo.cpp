@@ -1,6 +1,9 @@
 #include "Yolo.hpp"
+
+//Requirements: OpenCV and Darknet
+
+//To compile, paste in terminal:
 //g++ main.cpp -o output `pkg-config --cflags --libs opencv`
-//https://www.opencv-srf.com/2017/11/load-and-display-image.html
 
 //draw detecting boxes for frame function
 void DrawDetectingBox(Mat &cap, const string coconame, float confidence, Rect box)
