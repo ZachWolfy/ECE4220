@@ -3,7 +3,7 @@
 //Requirements: OpenCV and Darknet
 
 //To compile, paste in terminal:
-//g++ main.cpp -o output `pkg-config --cflags --libs opencv`
+//g++ Yolo.cpp -o output `pkg-config --cflags --libs opencv`
 
 //draw detecting boxes for frame function
 void DrawDetectingBox(Mat &cap, const string coconame, float confidence, Rect box)
